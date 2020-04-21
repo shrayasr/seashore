@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [ $# -ne 1 ]
+then
+  echo "Usage: $0 <database>"
+  exit 1
+fi
+
+database="$1"
+
+barman check --nagios "$database" > /dev/null
+check_result=$?
+
+if [ $check_result -ne 0 ]
+then
+        check=$(barman check "$database")
+        msg="*$database BACKUP PROBLEM*\n\`\`\`$check\`\`\`\n"
+
+        curl -X POST --data-urlencode "payload={\"channel\": \"#channel\", \"username\": \"barman\", \"text\": \"$msg\", \"icon_emoji\": \":ghost:\"}" https://hooks.slack.com/services/your/slack/hook/here
+fi
